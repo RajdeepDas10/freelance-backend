@@ -10,6 +10,7 @@ const jobSchema = new mongoose.Schema({
       freelancer: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
       bidAmount: { type: Number, required: true },
       proposal: { type: String, required: true },
+      projectId: { type: mongoose.Schema.Types.ObjectId, ref: "ClientJob" },
     },
   ],
 });

@@ -22,7 +22,7 @@ const User = require("../models/User");
 
 // Middleware to verify JWT
 const protect = (req, res, next) => {
-  const token = req.headers["authorization"];
+  const token = req.headers["Authorization"];
 
   if (!token) {
     return res.status(403).json({ message: "No token provided" });
