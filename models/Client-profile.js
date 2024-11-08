@@ -6,7 +6,11 @@ const jobSchema = new mongoose.Schema({
   description: { type: String, required: true },
   budget: { type: Number, required: true },
   skills: { type: String, required: true },
-  clientId: { type: mongoose.Schema.Types.ObjectId, required: true },
+  clientId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+    required: true,
+  },
   status: {
     type: String,
     enum: ["open", "in-progress", "completed", "cancelled"],

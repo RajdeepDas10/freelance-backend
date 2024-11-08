@@ -151,11 +151,15 @@ router.put("/bids/accept/:id", async (req, res) => {
     if (!bid) {
       return res.status(404).json({ message: "Bid not found" });
     }
-    const updateClientJob = await ClientJob.findByIdAndUpdate(bid.projectId, {
-      assignedFreelancerId: bid.freelancerId,
-      status: "in-progress",
-    });
-    await updateClientJob.save();
+    const updateClientJob = await ClientJob.findOneAndUpdate(
+      bid.projectId,
+      {
+        assignedFreelancerId: bid.assignedFreelancerId,
+        status: "in-progress",
+      },
+      { new: true }
+    );
+    console.log("updateClientJob", updateClientJob);
 
     bid.status = "accepted";
     await bid.save();
@@ -236,6 +240,69 @@ router.put("/complete-client-job/:id", async (req, res) => {
     res.json({ message: "Job completed successfully" });
   } catch (error) {
     res.status(400).json({ message: "Error completing job", error });
+  }
+});
+router.get("/freelancer-work/:userId", async (req, res) => {
+  try {
+    const userId = req.params.userId;
+    const projects = await ClientJob.find({
+      assignedFreelancerId: userId,
+    }).populate("clientId", "username email");
+    const appliedProjects = await FreelancerBid.find({
+      assignedFreelancerId: userId,
+    }).populate(
+      "projectId",
+      "title description budget skills time createdAt amountType"
+    );
+    const earnings = await FreelancerBid.find({
+      assignedFreelancerId: userId,
+      status: "completed",
+    });
+    const totalAmount = earnings.reduce((acc, curr) => acc + curr.amount, 0);
+    const projectCount = await ClientJob.countDocuments({
+      assignedFreelancerId: userId,
+    });
+    const ongoingProjectCount = await ClientJob.countDocuments({
+      assignedFreelancerId: userId,
+      status: "in-progress",
+    });
+    res.json({
+      projects,
+      appliedProjects,
+      totalAmount,
+      projectCount,
+      ongoingProjectCount,
+    });
+  } catch (error) {
+    res.status(400).json({ message: "Error fetching freelancer data", error });
+  }
+});
+
+// create a api to update name,bio,skills,portfolio
+router.put("/freelancer-profile/:userId", async (req, res) => {
+  try {
+    console.log("req.body", req.body);
+    const userId = req.params.userId;
+    const profile = await User.findOneAndUpdate({ _id: userId }, req.body, {
+      new: true,
+    });
+    res.json(profile);
+  } catch (error) {
+    res
+      .status(400)
+      .json({ message: "Error updating freelancer profile", error });
+  }
+});
+
+// get freelancer profile
+router.get("/freelancer-profile/:id", async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+    res.json(user);
+  } catch (error) {
+    res
+      .status(400)
+      .json({ message: "Error fetching freelancer profile", error });
   }
 });
 
