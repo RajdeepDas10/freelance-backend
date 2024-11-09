@@ -217,7 +217,9 @@ router.get("/in-progress-projects/:clientId", async (req, res) => {
     const projects = await ClientJob.find({
       clientId: req.params.clientId,
       status: "in-progress",
-    }).populate("assignedFreelancerId", "username email");
+    })
+      .populate("assignedFreelancerId", "username email")
+      .populate("");
     console.log("projects", projects);
     if (!projects) res.status(200).json({ message: "No projects found" });
     res.json(projects);
@@ -254,11 +256,37 @@ router.get("/freelancer-work/:userId", async (req, res) => {
       "projectId",
       "title description budget skills time createdAt amountType"
     );
-    const earnings = await FreelancerBid.find({
+
+    // get all completed projects
+    const completedProjects = await ClientJob.find({
       assignedFreelancerId: userId,
       status: "completed",
+    }).populate("clientId", "username email");
+
+    // get project IDs from completed projects
+    const projectIds = completedProjects.map((project) => project._id);
+
+    // get amount from FreelancerBid for each project ID
+    const getCompletedprojectAmount = await FreelancerBid.find({
+      projectId: { $in: projectIds },
+      assignedFreelancerId: userId,
+      status: "accepted",
     });
-    const totalAmount = earnings.reduce((acc, curr) => acc + curr.amount, 0);
+
+    console.log("getCompletedprojectAmount", getCompletedprojectAmount);
+    console.log("completedProjects", completedProjects);
+
+    // const earnings = await FreelancerBid.find({
+    //   assignedFreelancerId: userId,
+    //   status: "completed",
+    // });
+
+    // console.log("earnings", earnings);
+
+    const totalAmount = getCompletedprojectAmount.reduce(
+      (acc, curr) => acc + curr.amount,
+      0
+    );
     const projectCount = await ClientJob.countDocuments({
       assignedFreelancerId: userId,
     });

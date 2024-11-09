@@ -5,7 +5,11 @@ const {
   clientOnly,
   freelancerOnly,
 } = require("../middleware/authMiddleware");
-const { ClientJob, FreelancerBid } = require("../models/Client-profile");
+const {
+  ClientJob,
+  FreelancerBid,
+  Rating,
+} = require("../models/Client-profile");
 const User = require("../models/User");
 
 const router = express.Router();
@@ -45,7 +49,7 @@ router.get("/bid/:jobId/:amount/:userId", async (req, res) => {
       assignedFreelancerId: userId,
     });
     console.log("checkAlreadyApplied", checkAlreadyApplied);
-    if (checkAlreadyApplied.length > 1)
+    if (checkAlreadyApplied.length > 0)
       return res.json({ message: "Already Applied" });
     const job = await ClientJob.find({ _id: jobId });
     console.log("getProjectOwner", getProjectOwner);
@@ -109,13 +113,25 @@ router.get("/bids/list/:id", async (req, res) => {
   }
 });
 
-router.post("/rate/:id", async (req, res) => {
-  const { id } = req.params;
-  const { rating } = req.body;
+router.post("/rate/:id/:projectId", async (req, res) => {
+  const { id, projectId } = req.params;
+  const { rating, review } = req.body;
   try {
-    const job = await ClientJob.findById(id);
-    job.rating = rating;
-    await job.save();
+    const job = await ClientJob.findById(projectId)
+      .populate("clientId", "_id username email")
+      .populate("assignedFreelancerId", "_id username email");
+    if (!job) return res.status(404).json({ message: "Project not found" });
+    // add rating to rating schema
+    const ratingData = {
+      projectId,
+      rating,
+      review,
+      bidId: id,
+      clientId: job.clientId._id, // client id
+      freelancerId: job.assignedFreelancerId._id, // freelancer id
+    };
+
+    await Rating.create(ratingData);
     res.json({ message: "Project rated successfully" });
   } catch (error) {
     res.status(400).json({ message: "Error rating project", error });

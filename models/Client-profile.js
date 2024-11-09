@@ -29,6 +29,11 @@ const jobSchema = new mongoose.Schema({
     default: "fixed",
   },
   duration: { type: String },
+  rating: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Rating",
+    required: false,
+  },
 });
 
 // Bid Schema
@@ -56,7 +61,19 @@ const bidSchema = new mongoose.Schema({
   duration: { type: String },
 });
 
+// Rating Schema
+const ratingSchema = new mongoose.Schema({
+  projectId: { type: mongoose.Schema.Types.ObjectId, ref: "ClientJob" },
+  rating: { type: Number, required: true },
+  createdAt: { type: Date, default: Date.now },
+  clientId: { type: String, required: false, ref: "User" },
+  freelancerId: { type: String, required: false, ref: "User" },
+  bidId: { type: mongoose.Schema.Types.ObjectId, ref: "FreelancerBid" },
+  review: { type: String, required: false },
+});
+
 const ClientJob = mongoose.model("ClientJob", jobSchema);
 const FreelancerBid = mongoose.model("FreelancerBid", bidSchema);
+const Rating = mongoose.model("Rating", ratingSchema);
 
-module.exports = { ClientJob, FreelancerBid };
+module.exports = { ClientJob, FreelancerBid, Rating };
