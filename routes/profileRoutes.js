@@ -314,12 +314,18 @@ router.get("/freelancer-work/:userId", async (req, res) => {
       assignedFreelancerId: userId,
       status: "in-progress",
     });
+    const cancelledProjectCount = await ClientJob.countDocuments({
+      assignedFreelancerId: userId,
+      status: "cancelled",
+    });
+
     res.json({
       projects,
       appliedProjects,
       totalAmount,
       projectCount,
       ongoingProjectCount,
+      cancelledProjectCount,
     });
   } catch (error) {
     res.status(400).json({ message: "Error fetching freelancer data", error });
