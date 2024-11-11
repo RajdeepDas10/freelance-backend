@@ -74,18 +74,30 @@ router.get("/client-jobs/:userId/:status", async (req, res) => {
     const status = req.params.status;
     let clientJobs;
     if (status === "all") {
-      clientJobs = await ClientJob.find({ clientId: req.params.userId }).sort({
-        createdAt: -1,
-      });
+      clientJobs = await ClientJob.find({ clientId: req.params.userId })
+        .sort({
+          createdAt: -1,
+        })
+        .populate("assignedFreelancerId", "username email")
+        .populate("clientId", "username email")
+        .populate("rating", "rating review");
     } else if (status === "open") {
       clientJobs = await ClientJob.find({
         clientId: req.params.userId,
         status: "open",
-      }).sort({ createdAt: -1 });
+      })
+        .sort({ createdAt: -1 })
+        .populate("assignedFreelancerId", "username email")
+        .populate("clientId", "username email")
+        .populate("rating", "rating review");
     } else {
-      clientJobs = await ClientJob.find({ clientId: req.params.userId }).sort({
-        createdAt: -1,
-      });
+      clientJobs = await ClientJob.find({ clientId: req.params.userId })
+        .sort({
+          createdAt: -1,
+        })
+        .populate("assignedFreelancerId", "username email")
+        .populate("clientId", "username email")
+        .populate("rating", "rating review");
     }
     res.json(clientJobs);
   } catch (error) {

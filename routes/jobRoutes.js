@@ -115,23 +115,33 @@ router.get("/bids/list/:id", async (req, res) => {
 
 router.post("/rate/:id/:projectId", async (req, res) => {
   const { id, projectId } = req.params;
-  const { rating, review } = req.body;
+  const { rating, review } = req.body.data;
+
+  console.log("req body", req.body);
   try {
     const job = await ClientJob.findById(projectId)
       .populate("clientId", "_id username email")
       .populate("assignedFreelancerId", "_id username email");
     if (!job) return res.status(404).json({ message: "Project not found" });
+    if (job.isRated)
+      return res.status(204).json({ message: "Project already rated" });
     // add rating to rating schema
     const ratingData = {
       projectId,
-      rating,
+      rating: parseInt(rating),
       review,
       bidId: id,
       clientId: job.clientId._id, // client id
       freelancerId: job.assignedFreelancerId._id, // freelancer id
     };
 
-    await Rating.create(ratingData);
+    const getRating = await Rating.create(ratingData);
+    // update the project status to completed
+    await ClientJob.findByIdAndUpdate(projectId, {
+      isRated: true,
+      rating: getRating._id,
+    });
+
     res.json({ message: "Project rated successfully" });
   } catch (error) {
     res.status(400).json({ message: "Error rating project", error });

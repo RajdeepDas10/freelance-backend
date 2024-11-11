@@ -34,6 +34,7 @@ const jobSchema = new mongoose.Schema({
     ref: "Rating",
     required: false,
   },
+  isRated: { type: Boolean, default: false },
 });
 
 // Bid Schema

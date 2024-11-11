@@ -59,6 +59,10 @@ router.post("/login", async (req, res) => {
 
     // Find user
     const user = await User.findOne({ username });
+    console.log("user", user);
+    if (user.isDeleted) {
+      return res.status(400).json({ message: "User is not registered" });
+    }
     if (!user) {
       return res.status(400).json({ message: "Invalid credentials" });
     }
@@ -112,6 +116,12 @@ router.post("/login", async (req, res) => {
 // Get user profile
 router.get("/profile", protect, async (req, res) => {
   res.json(req.user);
+});
+
+// delete user
+router.delete("/delete/freelancer-profile/:userId", async (req, res) => {
+  await User.findByIdAndUpdate(req.params.userId, { isDeleted: true });
+  res.json({ message: "User deleted successfully" });
 });
 
 module.exports = router;

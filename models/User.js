@@ -8,6 +8,7 @@ const userSchema = new mongoose.Schema({
   role: { type: String, enum: ["client", "freelancer"], required: true },
   skills: { type: [String], default: [] },
   bio: { type: String, default: "" },
+  isDeleted: { type: Boolean, default: false },
 });
 
 // userSchema.pre("save", async function (next) {
