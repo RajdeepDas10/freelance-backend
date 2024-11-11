@@ -80,7 +80,8 @@ router.get("/client-jobs/:userId/:status", async (req, res) => {
         })
         .populate("assignedFreelancerId", "username email")
         .populate("clientId", "username email")
-        .populate("rating", "rating review");
+        .populate("rating", "rating review")
+        .populate("freelancerBid", "amount");
     } else if (status === "open") {
       clientJobs = await ClientJob.find({
         clientId: req.params.userId,
@@ -89,7 +90,8 @@ router.get("/client-jobs/:userId/:status", async (req, res) => {
         .sort({ createdAt: -1 })
         .populate("assignedFreelancerId", "username email")
         .populate("clientId", "username email")
-        .populate("rating", "rating review");
+        .populate("rating", "rating review")
+        .populate("freelancerBid", "amount");
     } else {
       clientJobs = await ClientJob.find({ clientId: req.params.userId })
         .sort({
@@ -97,7 +99,8 @@ router.get("/client-jobs/:userId/:status", async (req, res) => {
         })
         .populate("assignedFreelancerId", "username email")
         .populate("clientId", "username email")
-        .populate("rating", "rating review");
+        .populate("rating", "rating review")
+        .populate("freelancerBid", "amount");
     }
     res.json(clientJobs);
   } catch (error) {
@@ -168,7 +171,9 @@ router.put("/bids/accept/:id", async (req, res) => {
       {
         assignedFreelancerId: bid.assignedFreelancerId,
         status: "in-progress",
+        freelancerBid: bid._id,
       },
+
       { new: true }
     );
     console.log("updateClientJob", updateClientJob);
@@ -261,7 +266,10 @@ router.get("/freelancer-work/:userId", async (req, res) => {
     const userId = req.params.userId;
     const projects = await ClientJob.find({
       assignedFreelancerId: userId,
-    }).populate("clientId", "username email");
+    })
+      .populate("clientId", "username email")
+      .populate("freelancerBid", "amount")
+      .populate("rating", "rating review");
     const appliedProjects = await FreelancerBid.find({
       assignedFreelancerId: userId,
     }).populate(

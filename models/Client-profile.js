@@ -35,6 +35,11 @@ const jobSchema = new mongoose.Schema({
     required: false,
   },
   isRated: { type: Boolean, default: false },
+  freelancerBid: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "FreelancerBid",
+    required: false,
+  },
 });
 
 // Bid Schema
