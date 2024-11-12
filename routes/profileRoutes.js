@@ -276,7 +276,10 @@ router.get("/freelancer-work/:userId", async (req, res) => {
       "projectId",
       "title description budget skills time createdAt amountType"
     );
-
+    const rejectedProject = await FreelancerBid.countDocuments({
+      assignedFreelancerId: userId,
+      status: "rejected",
+    });
     // get all completed projects
     const completedProjects = await ClientJob.find({
       assignedFreelancerId: userId,
@@ -314,10 +317,6 @@ router.get("/freelancer-work/:userId", async (req, res) => {
       assignedFreelancerId: userId,
       status: "in-progress",
     });
-    const cancelledProjectCount = await ClientJob.countDocuments({
-      assignedFreelancerId: userId,
-      status: "cancelled",
-    });
 
     res.json({
       projects,
@@ -325,7 +324,7 @@ router.get("/freelancer-work/:userId", async (req, res) => {
       totalAmount,
       projectCount,
       ongoingProjectCount,
-      cancelledProjectCount,
+      rejectedProject,
     });
   } catch (error) {
     res.status(400).json({ message: "Error fetching freelancer data", error });
